@@ -9,7 +9,7 @@
         xmlns:bh="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:voiceMeeterVolumeConfiguration="clr-namespace:VoiceMeeterVolumeConfiguration"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800"
+        Title="Volume Link" Height="450" Width="800"
         ShowInTaskbar="{Binding ShowInTaskbar}"
         WindowState="{Binding WindowState}"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"

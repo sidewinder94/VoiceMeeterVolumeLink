@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Reactive;
-using System.Threading;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
 using VoiceMeeterVolumeConfiguration.Configuration;
+using VoiceMeeterVolumeConfiguration.Services;
 
 namespace VoiceMeeterVolumeConfiguration.ViewModels;
 
@@ -54,10 +55,35 @@ public class BusDeviceViewModel : BaseDeviceViewModel
         this._resource = voiceMeeterResource;
         this._voiceMeeterBus = busName;
 
+        this.AudioService = new AudioService($"{busName} {voiceMeeterResource.Name}")
+        {
+            AvailableDeviceNames = this.AvailableDeviceNames
+        };
+
+        this.AudioService.PropertyChanged += this.OnDeviceIdUpdated;
+
+        this.VolumeChangeSubscription = this.AudioService.Subscribe(this.AudioEndpointVolumeChanged);
 
         this.OnVoiceMeeterDeviceChanged(this._resource.DeviceName);
+        this.AvailableDeviceNames.CollectionChanged += this.AvailableDeviceNamesOnCollectionChanged;
+    }
 
-        this.RefreshDeviceList();
+    private void AvailableDeviceNamesOnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        this.SetProperty(ref this._associatedDeviceName, this._resource.DeviceName, nameof(this.AssociatedDeviceName));
+    }
+
+    /// <inheritdoc />
+    protected override async void OnDeviceIdUpdated(object? sender, PropertyChangedEventArgs? args)
+    {
+        Dictionary<string, ConfiguredDevice> configuredDevices = (await this.Configuration).ConfiguredDevices;
+        string? deviceId = this.AudioService?.CurrentDeviceId;
+
+        if (deviceId == null ||
+            !configuredDevices.ContainsKey(deviceId)) return;
+
+        this.IsMute = configuredDevices[deviceId].Mute;
+        this.LinkVolume = configuredDevices[deviceId].LinkVolume;
     }
 
     protected override void OnValueUpdate(EventPattern<PropertyChangedEventArgs> obj)
@@ -88,37 +114,23 @@ public class BusDeviceViewModel : BaseDeviceViewModel
     }
 
     /// <inheritdoc/>
-    protected override void AudioEndpointVolumeChanged(AudioVolumeNotificationData volumeData)
+    protected override void AudioEndpointVolumeChanged((AudioVolumeNotificationData volumeData, float volumeScalar) evt)
     {
+        (var volumeData, float volumeScalar) = evt;
+
         if (!this.LinkVolume) return;
 
         this._resource.Mute = volumeData.Muted;
 
-        if (this.SelectedDevice == null) return;
+        float destinationGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(),
+            volumeScalar);
 
-        lock (this.SelectedDevice)
-        {
-            float destinationGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(),
-                this.SelectedDevice.AudioEndpointVolume.MasterVolumeLevelScalar);
-            this._resource.Gain = destinationGain;
-        }
+        this._resource.Gain = destinationGain;
     }
 
     public void RefreshDeviceList()
     {
-        var selectedDevice = this.AssociatedDeviceName;
-
-        var enumerator = new MMDeviceEnumerator();
-
-        this.OnVoiceMeeterDeviceChanged(null);
-
-        this.DeviceLookup = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
-            .Select(GetDeviceIdentification)
-            .ToLookup(d => d.FriendlyName, v => v.Id);
-        this.AvailableDeviceNames.Clear();
-        this.DeviceLookup.Select(g => g.Key).ForEach(this.AvailableDeviceNames.Add);
-
-        this.OnVoiceMeeterDeviceChanged(selectedDevice);
+        this.AudioService?.RefreshAvailableDevices();
     }
 
     /// <summary>
@@ -127,75 +139,20 @@ public class BusDeviceViewModel : BaseDeviceViewModel
     /// <param name="name">The name of the new device</param>
     private void OnVoiceMeeterDeviceChanged(string? name)
     {
-        // We unsubscribe from notification from the old device and null it
-        if (this.SelectedDevice != null)
-        {
-            lock (this.SelectedDevice)
-            {
-                this.SelectedDevice.AudioEndpointVolume.OnVolumeNotification -= this.AudioEndpointVolumeChanged;
-                this.SelectedDevice.Dispose();
-                this.SelectedDevice = null;
-            }
-        }
+        if (this.AudioService == null) return;
+
+        this.AudioService.UseDevice = name;
 
         // And set the name for the GUI, we directly use SetProperty, because if VM clears the value we don't want to retain it on the GUI
         this.SetProperty(ref this._associatedDeviceName, name, nameof(this.AssociatedDeviceName));
-
-        // If we don't know the new device, we do nothing more
-        if (name == null
-            || this.DeviceLookup == null
-            || !this.DeviceLookup.Contains(name)
-            || !this.DeviceLookup[name].Any()) return;
-
-
-        // If we do, we subscribe to volume change notifications
-        var success = false;
-
-        do
-        {
-            try
-            {
-                this.SelectedDevice = new MMDeviceEnumerator().GetDevice(this.DeviceLookup[name].First());
-
-                lock (this.SelectedDevice)
-                {
-                    this.SelectedDevice.AudioEndpointVolume.OnVolumeNotification += this.AudioEndpointVolumeChanged;
-
-                    success = true;
-
-                    // And load the config if it exists
-                    this.SelectedDeviceId = this.SelectedDevice.ID;
-                }
-
-                var configuration = this.Configuration.Value.Result;
-
-                if (!configuration.ConfiguredDevices.ContainsKey(SelectedDeviceId))
-                {
-                    configuration.ConfiguredDevices[this.SelectedDeviceId] = new ConfiguredDevice
-                    {
-                        DeviceName = name
-                    };
-                }
-                
-                this.IsMute = configuration.ConfiguredDevices[this.SelectedDeviceId].Mute;
-                this.LinkVolume = configuration.ConfiguredDevices[this.SelectedDeviceId].LinkVolume;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-        } while (!success);
     }
 
     private void OnVoiceMeeterMuteChange(bool? isMute)
     {
         this.SetProperty(ref this._isMute, isMute, nameof(this.IsMute));
 
-        if (!isMute.HasValue || this.SelectedDevice == null) return;
-        
-        lock (this.SelectedDevice)
-        {
-            this.SelectedDevice.AudioEndpointVolume.Mute = isMute.Value;    
-        }
+        if (!isMute.HasValue) return;
+
+        this.AudioService?.SetMute(isMute.Value);
     }
 }

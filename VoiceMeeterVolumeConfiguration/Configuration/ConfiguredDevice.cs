@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace VoiceMeeterVolumeConfiguration.Configuration;
+﻿namespace VoiceMeeterVolumeConfiguration.Configuration;
 
 public class ConfiguredDevice
 {

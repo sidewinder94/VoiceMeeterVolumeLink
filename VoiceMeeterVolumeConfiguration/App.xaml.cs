@@ -2,6 +2,7 @@
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using VoiceMeeter.NET;
+using VoiceMeeter.NET.Extensions;
 using VoiceMeeterVolumeConfiguration.Configuration;
 using VoiceMeeterVolumeConfiguration.ViewModels;
 
@@ -27,7 +28,7 @@ namespace VoiceMeeterVolumeConfiguration
         {
             services.AddLogging();
             services.AddSingleton<IConfigurationManager, ConfigurationManager>();
-            services.AddSingleton(_ => VoiceMeeterClient.Create());
+            services.AddVoiceMeeterClient();
             services.AddSingleton<MainWindowViewModel>();
         }
 
