@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceMeeterVolumeConfiguration", "VoiceMeeterVolumeConfiguration\VoiceMeeterVolumeConfiguration.csproj", "{94C2CDC7-B659-489A-A764-C14902C47B0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceMeeterVolumeLink", "VoiceMeeterVolumeLink\VoiceMeeterVolumeLink.csproj", "{94C2CDC7-B659-489A-A764-C14902C47B0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceMeeter.NET", "VoiceMeeter.NET\VoiceMeeter.NET.csproj", "{D3E76C01-DDC1-44E3-8763-4BA38C179C1D}"
 EndProject
