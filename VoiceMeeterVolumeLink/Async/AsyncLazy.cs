@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VoiceMeeterVolumeConfiguration.Async;
+namespace VoiceMeeterVolumeLink.Async;
 
 public class AsyncLazy<T> : Lazy<Task<T>>
 {

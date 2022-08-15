@@ -1,19 +1,18 @@
-﻿<Window x:Class="VoiceMeeterVolumeConfiguration.MainWindow"
+﻿<Window x:Class="VoiceMeeterVolumeLink.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:locator="clr-namespace:VoiceMeeterVolumeConfiguration.Markup"
-        xmlns:viewModels="clr-namespace:VoiceMeeterVolumeConfiguration.ViewModels"
-        xmlns:wrappers="clr-namespace:VoiceMeeterVolumeConfiguration.Wrappers"
         xmlns:bh="http://schemas.microsoft.com/xaml/behaviors"
-        xmlns:voiceMeeterVolumeConfiguration="clr-namespace:VoiceMeeterVolumeConfiguration"
+        xmlns:markup="clr-namespace:VoiceMeeterVolumeLink.Markup"
+        xmlns:wrappers="clr-namespace:VoiceMeeterVolumeLink.Wrappers"
+        xmlns:voiceMeeterVolumeLink="clr-namespace:VoiceMeeterVolumeLink"
         mc:Ignorable="d"
         Title="Volume Link" Height="450" Width="800"
         ShowInTaskbar="{Binding ShowInTaskbar}"
         WindowState="{Binding WindowState}"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
-        DataContext="{locator:ViewModelProvider viewModels:MainWindowViewModel}">
+        DataContext="{markup:ViewModelProvider viewModels:MainWindowViewModel}">
     <bh:Interaction.Triggers>
         <bh:EventTrigger EventName="Loaded">
             <bh:InvokeCommandAction Command="{Binding LoadedCommand}" />
@@ -33,14 +32,14 @@
                 <ItemsControl Grid.Row="0" ItemsSource="{Binding Buses}" Grid.IsSharedSizeScope="True">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <voiceMeeterVolumeConfiguration:BusDeviceMapView/>
+                            <voiceMeeterVolumeLink:BusDeviceMapView/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding Strips}" Grid.IsSharedSizeScope="True">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <voiceMeeterVolumeConfiguration:StripDeviceMapView/>
+                            <voiceMeeterVolumeLink:StripDeviceMapView/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

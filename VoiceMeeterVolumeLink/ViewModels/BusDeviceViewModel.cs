@@ -5,10 +5,10 @@ using System.ComponentModel;
 using System.Reactive;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
-using VoiceMeeterVolumeConfiguration.Configuration;
-using VoiceMeeterVolumeConfiguration.Services;
+using VoiceMeeterVolumeLink.Configuration;
+using VoiceMeeterVolumeLink.Services;
 
-namespace VoiceMeeterVolumeConfiguration.ViewModels;
+namespace VoiceMeeterVolumeLink.ViewModels;
 
 public class BusDeviceViewModel : BaseDeviceViewModel
 {

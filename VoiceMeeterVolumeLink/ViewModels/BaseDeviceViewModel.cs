@@ -8,12 +8,11 @@ using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
-using VoiceMeeterVolumeConfiguration.Async;
-using VoiceMeeterVolumeConfiguration.Configuration;
-using VoiceMeeterVolumeConfiguration.Services;
+using VoiceMeeterVolumeLink.Async;
+using VoiceMeeterVolumeLink.Configuration;
+using VoiceMeeterVolumeLink.Services;
 
-
-namespace VoiceMeeterVolumeConfiguration.ViewModels;
+namespace VoiceMeeterVolumeLink.ViewModels;
 
 public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
 {
@@ -136,27 +135,47 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
         return output; // Might have to round
     }
 
-    private async void PersistLinkVolume(bool value)
-    {
-        if (this.AudioService?.CurrentDeviceId == null ||
-            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
-        (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].LinkVolume = value;
-
-        await this._configurationManager.SaveConfigurationAsync();
-    }
-
     private static void ResetSync(object? state)
     {
         if (state is not BaseDeviceViewModel viewModel) return;
         
         viewModel._audioLinkSync.Set();
     }
-    
+
+    private async void PersistLinkVolume(bool value)
+    {
+        if (this.AudioService?.CurrentDeviceId == null) return;
+
+        var configuration = await this.Configuration;
+
+        if (!configuration.ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId))
+        {
+            configuration.ConfiguredDevices.Add(this.AudioService.CurrentDeviceId, new ConfiguredDevice
+            {
+                DeviceName = this.AudioService.UseDevice
+            });
+        }
+        
+        configuration.ConfiguredDevices[this.AudioService.CurrentDeviceId].LinkVolume = value;
+
+        await this._configurationManager.SaveConfigurationAsync();
+    }
+
     protected async void PersistMute(bool value)
     {
-        if (this.AudioService?.CurrentDeviceId == null ||
-            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
-        (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].Mute = value;
+        if (this.AudioService?.CurrentDeviceId == null) return;
+        
+        var configuration = await this.Configuration;
+
+        if (!configuration.ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId))
+        {
+            configuration.ConfiguredDevices.Add(this.AudioService.CurrentDeviceId, new ConfiguredDevice
+            {
+                DeviceName = this.AudioService.UseDevice
+            });
+        }
+        
+        configuration.ConfiguredDevices[this.AudioService.CurrentDeviceId].Mute = value;
 
         await this._configurationManager.SaveConfigurationAsync();
     }

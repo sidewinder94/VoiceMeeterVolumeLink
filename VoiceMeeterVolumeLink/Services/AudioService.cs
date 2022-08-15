@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using NAudio.CoreAudioApi;
 
-
-namespace VoiceMeeterVolumeConfiguration.Services;
+namespace VoiceMeeterVolumeLink.Services;
 
 public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData volumeData, float volumeScalar)>,
     IDisposable, INotifyPropertyChanged

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VoiceMeeterVolumeConfiguration.Configuration;
+namespace VoiceMeeterVolumeLink.Configuration;
 
 public class RootConfiguration
 {

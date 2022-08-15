@@ -7,7 +7,7 @@ using System.Windows.Forms;
 using System.Windows.Input;
 using Application = System.Windows.Application;
 
-namespace VoiceMeeterVolumeConfiguration.Wrappers;
+namespace VoiceMeeterVolumeLink.Wrappers;
 
 public class NotifyIconWrapper : FrameworkElement, IDisposable
 {
