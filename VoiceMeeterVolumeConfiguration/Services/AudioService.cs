@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reactive;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -35,7 +33,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
     public ObservableCollection<string>? AvailableDeviceNames
     {
         get => this._availableDeviceNames;
-        set => this._availableDeviceNames = value;
+        init => this._availableDeviceNames = value;
     }
 
     public string? UseDevice
@@ -138,7 +136,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
 
                     Application.Current.Dispatcher.Invoke(() =>
                         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.CurrentDeviceId))));
-                    
+
                     this._currentDevice.AudioEndpointVolume.OnVolumeNotification +=
                         this.AudioEndpointVolumeOnOnVolumeNotification;
                 }
@@ -148,7 +146,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
                     this.UseDevice = null;
                 }
             }
-
+            
             // Make Volume Changes
             while (this._volumeChanges.TryDequeue(out (float? VolumeScalar, bool? mute) changeNotification))
             {
@@ -214,17 +212,4 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        
-    }
-
-    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
 }
