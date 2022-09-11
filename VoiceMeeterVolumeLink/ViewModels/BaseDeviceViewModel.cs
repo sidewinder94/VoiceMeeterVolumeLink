@@ -18,16 +18,16 @@ namespace VoiceMeeterVolumeConfiguration.ViewModels;
 public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
 {
     private readonly IDisposable _updateSubscription;
+    private readonly IConfigurationManager _configurationManager;
+    private readonly ManualResetEvent _audioLinkSync = new(true);
+    private readonly Timer _syncResetTimer;
     private bool _linkVolume;
     private int _index;
     private string? _voiceMeeterName;
-    private Timer _syncResetTimer;
-    
-    protected readonly IConfigurationManager ConfigurationManager;
+
     protected readonly AsyncLazy<RootConfiguration> Configuration;
     protected AudioService? AudioService;
     protected IDisposable? VolumeChangeSubscription;
-    protected readonly ManualResetEvent AudioLinkSync = new(true);
     private bool? _isVoiceMeeterMasterVolume = null;
 
     public int Index
@@ -57,15 +57,15 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
 
     ~BaseDeviceViewModel()
     {
-        Dispose(false);
+        this.Dispose(false);
     }
 
     protected BaseDeviceViewModel(IVoiceMeeterResource voiceMeeterResource, IConfigurationManager configurationManager)
     {
         this._syncResetTimer = new Timer(ResetSync, this, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
-        this.ConfigurationManager = configurationManager;
-        this.Configuration = new AsyncLazy<RootConfiguration>(this.ConfigurationManager.GetConfigurationAsync);
+        this._configurationManager = configurationManager;
+        this.Configuration = new AsyncLazy<RootConfiguration>(this._configurationManager.GetConfigurationAsync);
 
         this._index = voiceMeeterResource.Index;
         this._voiceMeeterName = voiceMeeterResource.Name;
@@ -83,27 +83,17 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
     /// </summary>
     /// <param name="evt">The event containing the new volume data and the volume scalar (volume on a scale of 0..1)</param>
     protected abstract void AudioEndpointVolumeChanged((AudioVolumeNotificationData volumeData, float volumeScalar) evt);
-
-    protected static (string FriendlyName, string Id) GetDeviceIdentification(MMDevice device)
-    {
-        var result = (device.FriendlyName, device.ID);
-
-        // We are not going to use this device instance after that, we clean up after ourselves
-        device.Dispose();
-
-        return result;
-    }
-
+    
     protected void TakeVolumeLead(bool isVoiceMeeterVolume)
     {
         this._syncResetTimer.Change(TimeSpan.FromMilliseconds(200), Timeout.InfiniteTimeSpan);
         this._isVoiceMeeterMasterVolume = isVoiceMeeterVolume;
-        this.AudioLinkSync.Reset();
+        this._audioLinkSync.Reset();
     }
     
     protected bool CanUpdateVolume(bool isVoiceMeeterVolume)
     {
-        return this.AudioLinkSync.WaitOne(1) || this._isVoiceMeeterMasterVolume == isVoiceMeeterVolume;
+        return this._audioLinkSync.WaitOne(1) || this._isVoiceMeeterMasterVolume == isVoiceMeeterVolume;
     }
     
     protected void OnVoiceMeeterGainChange(float? gain)
@@ -152,14 +142,14 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
             !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
         (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].LinkVolume = value;
 
-        await this.ConfigurationManager.SaveConfigurationAsync();
+        await this._configurationManager.SaveConfigurationAsync();
     }
 
     private static void ResetSync(object? state)
     {
         if (state is not BaseDeviceViewModel viewModel) return;
         
-        viewModel.AudioLinkSync.Set();
+        viewModel._audioLinkSync.Set();
     }
     
     protected async void PersistMute(bool value)
@@ -168,7 +158,7 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
             !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
         (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].Mute = value;
 
-        await this.ConfigurationManager.SaveConfigurationAsync();
+        await this._configurationManager.SaveConfigurationAsync();
     }
 
     protected virtual void Dispose(bool disposing)
@@ -177,7 +167,7 @@ public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
         this._updateSubscription.Dispose();
         this.AudioService?.Dispose();
         this.VolumeChangeSubscription?.Dispose();
-        this.AudioLinkSync.Dispose();
+        this._audioLinkSync.Dispose();
     }
 
     /// <inheritdoc />

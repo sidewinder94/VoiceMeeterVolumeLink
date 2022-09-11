@@ -6,6 +6,8 @@
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
         <LangVersion>latest</LangVersion>
+        <AssemblyName>VoiceMeeterVolumeLink</AssemblyName>
+        <RootNamespace>VoiceMeeterVolumeLink</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
