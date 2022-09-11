@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -40,7 +42,8 @@ public class ConfigurationManager : IConfigurationManager
             await JsonSerializer.SerializeAsync(configFile, await this._configuration,
                 new JsonSerializerOptions
                 {
-                    WriteIndented = true
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
                 });
 
             configFile.SetLength(configFile.Position);

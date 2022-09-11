@@ -7,5 +7,8 @@ public enum ParamType
 {
     Float,
     String,
-    Bool
+    Bool,
+    Custom,
+    CustomEnum,
+    Integer
 }

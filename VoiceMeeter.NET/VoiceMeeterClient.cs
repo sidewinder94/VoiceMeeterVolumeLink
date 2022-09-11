@@ -44,7 +44,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
     }
 
     /// <inheritdoc/>
-    [AllowNotLaunched]
+    [AllowNotLaunched(IgnoreIfLoggedOff = true)]
     public bool Logout()
     {
         long result = NativeMethods.Logout();
@@ -267,8 +267,15 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
             if (invocation.Method.Name != nameof(Login))
             {
                 var allowNotLaunched =
-                    invocation.MethodInvocationTarget.GetCustomAttribute(typeof(AllowNotLaunchedAttribute));
+                    invocation.MethodInvocationTarget.GetCustomAttribute<AllowNotLaunchedAttribute>();
 
+                // Allows for multiple log off calls without exceptions
+                if (allowNotLaunched is { IgnoreIfLoggedOff: true } && this.Client.Status == LoginResponse.LoggedOff)
+                {
+                    invocation.ReturnValue = false;
+                    return;
+                };
+                
                 this.AssertLoggedIn(allowNotLaunched != null);
             }
 

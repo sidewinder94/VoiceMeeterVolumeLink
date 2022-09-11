@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using CommunityToolkit.HighPerformance;
 using Microsoft.Extensions.DependencyInjection;
 using VoiceMeeter.NET;
 using VoiceMeeter.NET.Extensions;

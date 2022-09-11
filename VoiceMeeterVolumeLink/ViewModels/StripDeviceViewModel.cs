@@ -106,10 +106,11 @@ public class StripDeviceViewModel : BaseDeviceViewModel
 
         this._resource.Mute = volumeData.Muted;
 
-        float destinationGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(),
-            volumeScalar);
-
-        this._resource.Gain = destinationGain;
+        float proportionalGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(), volumeScalar);
+        
+        proportionalGain = Math.Abs(proportionalGain) <= 0.3f ? 0.0f : proportionalGain; 
+        
+        this._resource.Gain = proportionalGain;
     }
 
     private void OnVoiceMeeterMuteChange(bool? isMute)

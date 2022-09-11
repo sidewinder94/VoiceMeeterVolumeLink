@@ -27,7 +27,8 @@ public interface IVoiceMeeterClient
     /// <permission cref="AllowNotLaunchedAttribute">Can be used even if the <see cref="Status"/> is not <see cref="LoginResponse.Ok"/></permission>
     /// <returns><c>true</c> on success</returns>
     /// <exception cref="DllNotFoundException">In case the VoiceMeeterRemote.dll / VoiceMeeterRemote64.dll files are not found</exception>
-    /// <exception cref="VoiceMeeterNotLoggedException">In case the <see cref="Status"/> is not <see cref="LoginResponse.Ok"/> or <see cref="LoginResponse.VoiceMeeterNotRunning"/></exception>
+    /// <exception cref="VoiceMeeterNotLoggedException">In case the <see cref="Status"/> is not <see cref="LoginResponse.Ok"/>, <see cref="LoginResponse.VoiceMeeterNotRunning"/> or <see cref="LoginResponse.LoggedOff"/></exception>
+    /// <remarks>Can be called multiple times it will only effectively call VoiceMeeter if the <see cref="Status"/> is not <see cref="LoginResponse.LoggedOff"/></remarks>
     bool Logout();
     
     /// <summary>

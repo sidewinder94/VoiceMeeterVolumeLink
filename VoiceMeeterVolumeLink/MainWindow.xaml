@@ -9,15 +9,12 @@
         xmlns:voiceMeeterVolumeLink="clr-namespace:VoiceMeeterVolumeLink"
         xmlns:viewModels="clr-namespace:VoiceMeeterVolumeLink.ViewModels"
         mc:Ignorable="d"
-        Title="Volume Link" Height="450" Width="800"
+        Title="Volume Link" Height="{Binding Height, Mode=TwoWay}" Width="{Binding Width, Mode=TwoWay}"
         ShowInTaskbar="{Binding ShowInTaskbar}"
         WindowState="{Binding WindowState}"
         d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel, IsDesignTimeCreatable=True}"
         DataContext="{markup:ViewModelProvider viewModels:MainWindowViewModel}">
     <bh:Interaction.Triggers>
-        <bh:EventTrigger EventName="Loaded">
-            <bh:InvokeCommandAction Command="{Binding LoadedCommand}" />
-        </bh:EventTrigger>
         <bh:EventTrigger EventName="Closing">
             <bh:InvokeCommandAction Command="{Binding ClosingCommand}" />
         </bh:EventTrigger>

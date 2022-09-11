@@ -125,10 +125,11 @@ public class BusDeviceViewModel : BaseDeviceViewModel
 
         this._resource.Mute = volumeData.Muted;
 
-        float destinationGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(),
-            volumeScalar);
+        float proportionalGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(), volumeScalar);
+        
+        proportionalGain = Math.Abs(proportionalGain) <= 0.3f ? 0.0f : proportionalGain;
 
-        this._resource.Gain = destinationGain;
+        this._resource.Gain = proportionalGain;
     }
 
     public void RefreshDeviceList()

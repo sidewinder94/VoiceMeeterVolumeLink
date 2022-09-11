@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using VoiceMeeter.NET.Attributes;
+using VoiceMeeter.NET.Configuration.Values;
 using VoiceMeeter.NET.Enums;
 
 
@@ -20,8 +21,8 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
     where TResource : VoiceMeeterResource<TResource>
 {
     private string? _name;
-    private ChangeTracker ChangeTracker { get; }
     private VoiceMeeterType VoiceMeeterType { get; }
+    protected ChangeTracker ChangeTracker { get; }
     protected event PropertyChangedEventHandler? RemoteValueToUpdate;
 
     private Dictionary<string, (VoiceMeeterParameterAttribute Attribute, PropertyInfo Property, FieldInfo Field)>
@@ -118,7 +119,6 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
 
         if (untypedValue == null) throw new ArgumentNullException(propertyName);
 
-
         if (!attribute.UsableOn.Contains(this.VoiceMeeterType)) throw new InvalidOperationException();
 
         switch (attribute.ParamType)
@@ -132,6 +132,10 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
             case ParamType.Bool:
                 this.ChangeTracker.SaveValue(propertyName, (bool)untypedValue);
                 break;
+            case ParamType.Custom:
+            case ParamType.CustomEnum:
+                this.ChangeTracker.SaveValue(propertyName, (ICustomConfigurationSetting)untypedValue);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(propertyName);
         }
@@ -143,17 +147,27 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
     /// </summary>
     /// <param name="isDirty">If VoiceMeeter has updates available</param>
     /// <exception cref="ArgumentOutOfRangeException">If the <see cref="VoiceMeeterParameterAttribute.ParamType"/> is not a known value</exception>
-    [SuppressMessage("Usage", "CA2208", Justification = "We throw for another property, so that can't be our own argument")]
+    [SuppressMessage("Usage", "CA2208",
+        Justification = "We throw for another property, so that can't be our own argument")]
     protected virtual void OnUpdateTriggered(bool isDirty)
     {
         if (!isDirty) return;
-
+        
+#if DEBUG
+        var stopWatch = new System.Diagnostics.Stopwatch();       
+        stopWatch.Start();
+#endif
+        
         foreach ((string name, var (attribute, property, field)) in this.VoiceMeeterProperties)
         {
             if (attribute.ParamMode == ParamMode.WriteOnly) continue;
 
             switch (attribute.ParamType)
             {
+                case ParamType.Integer:
+                    int valueInt = Convert.ToInt32(this.ChangeTracker.Client.GetFloatParameter(this.GetFullParamName(name)));
+                    field.SetValue(this, valueInt);
+                    break;
                 case ParamType.Float:
                     float valueFloat = this.ChangeTracker.Client.GetFloatParameter(this.GetFullParamName(name));
                     field.SetValue(this, valueFloat);
@@ -166,15 +180,27 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
                     bool valueBool = this.ChangeTracker.Client.GetFloatParameter(this.GetFullParamName(name)) != 0;
                     field.SetValue(this, valueBool);
                     break;
+                case ParamType.Custom:
+                case ParamType.CustomEnum:
+                    ParamType? customParamType = ((ICustomConfigurationSetting?)field.GetValue(this))?.ValueType;
+                    var valueCustom =
+                        this.ChangeTracker.GetCustomParameter(field, customParamType, this.GetFullParamName(name));
+                    field.SetValue(this, valueCustom);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(attribute));
             }
 
             this.PropertyChanged?.Invoke(this.ChangeTracker, new PropertyChangedEventArgs(property.Name));
         }
+        
+#if DEBUG
+        stopWatch.Stop();
+        //System.Diagnostics.Trace.TraceInformation("Pull duration was {0} / {1} ms", stopWatch.Elapsed, stopWatch.ElapsedMilliseconds);
+#endif
     }
 
-    internal string GetFullParamName(string paramName)
+    internal virtual string GetFullParamName(string paramName)
     {
         return $"{this.ResourceType}[{this.Index}].{paramName}";
     }
