@@ -19,6 +19,11 @@
     <ItemGroup>
       <PackageReference Include="Castle.Core" Version="5.0.0" />
       <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+      <PackageReference Include="MinVer" Version="4.1.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="System.Interactive" Version="6.0.1" />
       <PackageReference Include="System.Interactive.Async" Version="6.0.1" />
       <PackageReference Include="System.Reactive" Version="5.0.0" />

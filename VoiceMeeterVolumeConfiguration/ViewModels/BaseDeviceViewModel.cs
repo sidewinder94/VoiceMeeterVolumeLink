@@ -2,15 +2,14 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Reactive;
 using System.Reflection;
-using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
 using VoiceMeeterVolumeConfiguration.Async;
 using VoiceMeeterVolumeConfiguration.Configuration;
+using VoiceMeeterVolumeConfiguration.Services;
 
 
 namespace VoiceMeeterVolumeConfiguration.ViewModels;
@@ -23,13 +22,8 @@ public abstract class BaseDeviceViewModel : ObservableObject
     private string? _voiceMeeterName;
     protected readonly IConfigurationManager ConfigurationManager;
     protected readonly AsyncLazy<RootConfiguration> Configuration;
-    
-    /// <summary>
-    /// This is a COM object all access should be done from the thread it was instantiated on <br/>
-    /// Either re-instantiate each time there is a risk of a new thread (don't forget async) or ensure the use on a single thread  
-    /// </summary>
-    protected MMDevice? SelectedDevice;
-    protected string? SelectedDeviceId;
+    protected AudioService? AudioService;
+    protected IDisposable? VolumeChangeSubscription;
 
     public int Index
     {
@@ -44,7 +38,6 @@ public abstract class BaseDeviceViewModel : ObservableObject
     }
 
     public ObservableCollection<string> AvailableDeviceNames { get; } = new();
-    protected ILookup<string, string>? DeviceLookup { get; set; }
 
     public bool LinkVolume
     {
@@ -59,7 +52,8 @@ public abstract class BaseDeviceViewModel : ObservableObject
 
     ~BaseDeviceViewModel()
     {
-        this._updateSubscription.Dispose();
+        this._updateSubscription?.Dispose();
+        this.VolumeChangeSubscription?.Dispose();
     }
 
     protected BaseDeviceViewModel(IVoiceMeeterResource voiceMeeterResource, IConfigurationManager configurationManager)
@@ -73,14 +67,16 @@ public abstract class BaseDeviceViewModel : ObservableObject
         this._updateSubscription = voiceMeeterResource.PropertyChangedObservable.Subscribe(this.OnValueUpdate);
     }
 
+    protected abstract void OnDeviceIdUpdated(object? sender, PropertyChangedEventArgs? args);
+    
     protected abstract void OnValueUpdate(EventPattern<PropertyChangedEventArgs> obj);
 
     /// <summary>
     /// Called when the volume changed from Windows' side <br/>
     /// Covers volume changes &amp; mute
     /// </summary>
-    /// <param name="volumeData">The new volume data</param>
-    protected abstract void AudioEndpointVolumeChanged(AudioVolumeNotificationData volumeData);
+    /// <param name="evt">The event containing the new volume data and the volume scalar (volume on a scale of 0..1)</param>
+    protected abstract void AudioEndpointVolumeChanged((AudioVolumeNotificationData volumeData, float volumeScalar) evt);
 
     protected static (string FriendlyName, string Id) GetDeviceIdentification(MMDevice device)
     {
@@ -94,13 +90,10 @@ public abstract class BaseDeviceViewModel : ObservableObject
 
     protected void OnVoiceMeeterGainChange(float? gain)
     {
-        if (!gain.HasValue || this.SelectedDevice == null) return;
-        
-        lock (this.SelectedDevice)
-        {
-            this.SelectedDevice.AudioEndpointVolume.MasterVolumeLevelScalar =
-                ProportionalGain(GetVoiceMeeterVolumeRange(), GetWindowsVolumeRange(), gain.Value);
-        }
+        if (!gain.HasValue || !this._linkVolume) return;
+
+        this.AudioService?.SetVolume(
+            ProportionalGain(GetVoiceMeeterVolumeRange(), GetWindowsVolumeRange(), gain.Value));
     }
 
     protected static (float MinVolume, float MaxVolume) GetVoiceMeeterVolumeRange()
@@ -134,18 +127,18 @@ public abstract class BaseDeviceViewModel : ObservableObject
 
     private async void PersistLinkVolume(bool value)
     {
-        if (this.SelectedDeviceId == null ||
-            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.SelectedDeviceId)) return;
-        (await this.Configuration).ConfiguredDevices[this.SelectedDeviceId].LinkVolume = value;
+        if (this.AudioService?.CurrentDeviceId == null ||
+            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
+        (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].LinkVolume = value;
 
         await this.ConfigurationManager.SaveConfigurationAsync();
     }
 
     protected async void PersistMute(bool value)
     {
-        if (this.SelectedDeviceId == null ||
-            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.SelectedDeviceId)) return;
-        (await this.Configuration).ConfiguredDevices[this.SelectedDeviceId].Mute = value;
+        if (this.AudioService?.CurrentDeviceId == null ||
+            !(await this.Configuration).ConfiguredDevices.ContainsKey(this.AudioService.CurrentDeviceId)) return;
+        (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].Mute = value;
 
         await this.ConfigurationManager.SaveConfigurationAsync();
     }

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using VoiceMeeter.NET.Enums;
 
 namespace VoiceMeeter.NET.Structs;
