@@ -8,11 +8,12 @@ namespace VoiceMeeter.NET.Configuration;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class Bus : VoiceMeeterResource<Bus>
 {
-    private float _gain;
-
+    private bool _mono;
     private bool _mute;
-
+    private bool _isEqEnabled;
+    private float _gain;
     private string _deviceName = string.Empty;
+    private bool _isEqBEnabled;
 
     /// <inheritdoc/>
     public override string ResourceType => nameof(Bus);
@@ -22,12 +23,11 @@ public class Bus : VoiceMeeterResource<Bus>
     /// </summary>
     public virtual bool IsVirtual { get; internal set; }
 
-    [Range(-60.0f, 12.0f)]
-    [VoiceMeeterParameter(nameof(_gain),"Gain", ParamType.Float)]
-    public float Gain
+    [VoiceMeeterParameter(nameof(_mono), "Mono", ParamType.Bool)]
+    public bool Mono
     {
-        get => this._gain;
-        set => this.SetProperty(ref this._gain, value);
+        get => this._mono;
+        set => this.SetProperty(ref this._mono, value);
     }
 
     [VoiceMeeterParameter(nameof(_mute), "Mute", ParamType.Bool)]
@@ -35,6 +35,32 @@ public class Bus : VoiceMeeterResource<Bus>
     {
         get => this._mute;
         set => this.SetProperty(ref this._mute, value);
+    }
+
+    [VoiceMeeterParameter(nameof(_isEqEnabled), "EQ.on", ParamType.Bool)]
+    public bool IsEqEnabled
+    {
+        get => this._isEqEnabled;
+        set => this.SetProperty(ref this._isEqEnabled, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating which EQ memory slot is in use
+    /// </summary>
+    /// <remarks>A <c>false</c> value here means that EQ A is enabled (default)</remarks>
+    [VoiceMeeterParameter(nameof(_isEqBEnabled), "EQ.AB", ParamType.Bool)]
+    public bool IsEqBEnabled
+    {
+        get => this._isEqBEnabled;
+        set => this.SetProperty(ref this._isEqBEnabled, value);
+    }
+
+    [Range(-60.0f, 12.0f)]
+    [VoiceMeeterParameter(nameof(_gain),"Gain", ParamType.Float)]
+    public float Gain
+    {
+        get => this._gain;
+        set => this.SetProperty(ref this._gain, value);
     }
 
     [VoiceMeeterParameter(nameof(_deviceName), "device.name", ParamType.String, ParamMode = ParamMode.ReadOnly)]
