@@ -7,6 +7,7 @@
         xmlns:markup="clr-namespace:VoiceMeeterVolumeLink.Markup"
         xmlns:wrappers="clr-namespace:VoiceMeeterVolumeLink.Wrappers"
         xmlns:voiceMeeterVolumeLink="clr-namespace:VoiceMeeterVolumeLink"
+        xmlns:viewModels="clr-namespace:VoiceMeeterVolumeLink.ViewModels"
         mc:Ignorable="d"
         Title="Volume Link" Height="450" Width="800"
         ShowInTaskbar="{Binding ShowInTaskbar}"
