@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using VoiceMeeter.NET;
 using VoiceMeeterVolumeLink.Configuration;
 using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
 namespace VoiceMeeterVolumeLink.ViewModels;
@@ -55,7 +56,15 @@ public class MainWindowViewModel : ObservableObject
         this.ClosingCommand = new RelayCommand<MouseEventArgs>(this.Closing);
         this.ExitCommand = new RelayCommand<EventArgs>(this.Exit);
 
-        client.Login();
+        try
+        {
+            client.Login();
+        }
+        catch (DllNotFoundException e)
+        {
+            MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        
         
         this.Configuration = client.GetConfiguration(TimeSpan.FromMilliseconds(150));
 
