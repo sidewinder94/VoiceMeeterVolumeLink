@@ -22,6 +22,11 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
     {
     }
 
+    /// <summary>
+    /// Creates a client able to interact with VoiceMeeter remote API
+    /// </summary>
+    /// <seealso cref="DependencyInjectionExtensions.AddVoiceMeeterClient"/>
+    /// <returns>An instance of <see cref="IVoiceMeeterClient"/></returns>
     public static IVoiceMeeterClient Create()
     {
         var proxyGenerator = new ProxyGenerator();
