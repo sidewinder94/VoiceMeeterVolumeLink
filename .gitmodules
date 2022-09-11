@@ -1,0 +1,3 @@
+[submodule "VoiceMeeter.NET"]
+	path = VoiceMeeter.NET
+	url = https://github.com/sidewinder94/VoiceMeeter.NET
