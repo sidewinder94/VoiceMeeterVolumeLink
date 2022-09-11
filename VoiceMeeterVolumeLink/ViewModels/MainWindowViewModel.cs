@@ -103,6 +103,7 @@ public class MainWindowViewModel : ObservableObject
 
     private void Exit(EventArgs? obj)
     {
+        this._client.Logout();
         Application.Current.Shutdown();
     }
 
