@@ -20,17 +20,30 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
     where TResource : VoiceMeeterResource<TResource>
 {
     private string? _name;
-
     private ChangeTracker ChangeTracker { get; }
-
     private VoiceMeeterType VoiceMeeterType { get; }
+    protected event PropertyChangedEventHandler? RemoteValueToUpdate;
 
     private Dictionary<string, (VoiceMeeterParameterAttribute Attribute, PropertyInfo Property, FieldInfo Field)>
         VoiceMeeterProperties { get; }
 
+    /// <inheritdoc/>
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    /// <summary>
+    /// The string representation of this resource type
+    /// </summary>
     public abstract string ResourceType { get; }
-    public virtual bool IsVirtual { get; internal set; }
+
+    /// <summary>
+    /// The resource index, for unique resource, will still be set to <c>0</c>
+    /// </summary>
     public int Index { get; internal set; }
+
+    /// <summary>
+    /// Returns an <see cref="IObservable{T}"/> pushing the values of the <see cref="PropertyChanged"/> event
+    /// </summary>
+    /// <remarks>Supports multicast</remarks>
     public IObservable<EventPattern<PropertyChangedEventArgs>> PropertyChangedObservable { get; }
 
     [VoiceMeeterParameter(nameof(_name), "Label", ParamType.String)]
@@ -165,9 +178,6 @@ public abstract class VoiceMeeterResource<TResource> : IVoiceMeeterResource
     {
         return $"{this.ResourceType}[{this.Index}].{paramName}";
     }
-
-    protected event PropertyChangedEventHandler? RemoteValueToUpdate;
-    public event PropertyChangedEventHandler? PropertyChanged;
 
 
     [NotifyPropertyChangedInvocator]

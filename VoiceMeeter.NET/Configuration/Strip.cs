@@ -8,14 +8,21 @@ namespace VoiceMeeter.NET.Configuration;
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class Strip : VoiceMeeterResource<Strip>
 {
-    public override string ResourceType => nameof(Strip);
-
     private float _gain;
+
     private bool _mute;
+
     private string _deviceName = string.Empty;
 
-    /// <inheritdoc />
-    public override bool IsVirtual => string.IsNullOrWhiteSpace(this.DeviceName);
+    /// <inheritdoc/>
+    public override string ResourceType => nameof(Strip);
+
+    /// <summary>
+    /// Returns a value indicating if this is a virtual <see cref="Strip"/>
+    /// </summary>
+    public bool IsVirtual => string.IsNullOrWhiteSpace(this.DeviceName);
+
+    public string? VirtualDeviceName { get; internal set; }
 
     [Range(-60.0f, 12.0f)]
     [VoiceMeeterParameter(nameof(_gain), "Gain", ParamType.Float)]
@@ -31,7 +38,7 @@ public class Strip : VoiceMeeterResource<Strip>
         get => this._mute;
         set => this.SetProperty(ref this._mute, value);
     }
-    
+
     [VoiceMeeterParameter(nameof(_deviceName), "device.name", ParamType.String, ParamMode = ParamMode.ReadOnly)]
     public string DeviceName
     {
@@ -45,8 +52,6 @@ public class Strip : VoiceMeeterResource<Strip>
         internal get => this._deviceName;
         set => this.SetProperty(ref this._deviceName, value);
     }
-    
-    public string? VirtualDeviceName { get; internal set; }
 
     internal Strip(ChangeTracker changeTracker, VoiceMeeterType voiceMeeterType, int index) : base(changeTracker, voiceMeeterType, index)
     {

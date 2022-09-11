@@ -1,5 +1,8 @@
 ﻿namespace VoiceMeeter.NET.Enums;
 
+/// <summary>
+/// Represents the various possible levels
+/// </summary>
 public enum LevelType
 {
     PreFaderInput = 0,

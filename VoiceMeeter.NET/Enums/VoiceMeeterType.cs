@@ -1,5 +1,8 @@
 ﻿namespace VoiceMeeter.NET.Enums;
 
+/// <summary>
+/// Represents the supported VoiceMeeter application types
+/// </summary>
 public enum VoiceMeeterType
 {
     VoiceMeeter = 1,
