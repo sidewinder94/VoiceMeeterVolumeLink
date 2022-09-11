@@ -22,21 +22,21 @@ public class Bus : VoiceMeeterResource<Bus>
         set => this.SetProperty(ref this._gain, value);
     }
 
-    [VoiceMeeterParameter(nameof(Bus._mute), "Mute", ParamType.Bool)]
+    [VoiceMeeterParameter(nameof(_mute), "Mute", ParamType.Bool)]
     public bool Mute
     {
         get => this._mute;
         set => this.SetProperty(ref this._mute, value);
     }
 
-    [VoiceMeeterParameter(nameof(Bus._deviceName), "device.name", ParamType.String, ParamMode = ParamMode.ReadOnly)]
+    [VoiceMeeterParameter(nameof(_deviceName), "device.name", ParamType.String, ParamMode = ParamMode.ReadOnly)]
     public string DeviceName
     {
         get => this._deviceName;
         internal set => this.SetProperty(ref this._deviceName, value);
     }
     
-    [VoiceMeeterParameter(nameof(Bus._deviceName), "device.wdm", ParamType.String, ParamMode = ParamMode.WriteOnly)]
+    [VoiceMeeterParameter(nameof(_deviceName), "device.wdm", ParamType.String, ParamMode = ParamMode.WriteOnly)]
     public string WdmDevice
     {
         internal get => this._deviceName;

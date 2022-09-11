@@ -1,4 +1,4 @@
-﻿namespace VoiceMeeterVolumeConfiguration
+﻿namespace VoiceMeeterVolumeLink
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -7,7 +7,7 @@
     {
         public MainWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

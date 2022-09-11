@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using VoiceMeeterVolumeConfiguration.Async;
+using VoiceMeeterVolumeLink.Async;
 
-namespace VoiceMeeterVolumeConfiguration.Configuration;
+namespace VoiceMeeterVolumeLink.Configuration;
 
 public class ConfigurationManager : IConfigurationManager
 {

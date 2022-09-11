@@ -1,4 +1,4 @@
-﻿namespace VoiceMeeterVolumeConfiguration.Configuration;
+﻿namespace VoiceMeeterVolumeLink.Configuration;
 
 public class ConfiguredDevice
 {

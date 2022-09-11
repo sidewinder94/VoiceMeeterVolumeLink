@@ -8,11 +8,11 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VoiceMeeter.NET;
-using VoiceMeeterVolumeConfiguration.Configuration;
+using VoiceMeeterVolumeLink.Configuration;
 using Application = System.Windows.Application;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
-namespace VoiceMeeterVolumeConfiguration.ViewModels;
+namespace VoiceMeeterVolumeLink.ViewModels;
 
 public class MainWindowViewModel : ObservableObject
 {
@@ -30,7 +30,7 @@ public class MainWindowViewModel : ObservableObject
             this.ShowInTaskbar = true;
             this.SetProperty(ref this._windowState, value);
             this.ShowInTaskbar = value != WindowState.Minimized;
-            if (value != WindowState.Minimized) RefreshDeviceList();
+            if (value != WindowState.Minimized) this.RefreshDeviceList();
         }
     }
 

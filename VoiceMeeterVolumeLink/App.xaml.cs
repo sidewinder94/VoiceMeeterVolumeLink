@@ -3,10 +3,10 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using VoiceMeeter.NET;
 using VoiceMeeter.NET.Extensions;
-using VoiceMeeterVolumeConfiguration.Configuration;
-using VoiceMeeterVolumeConfiguration.ViewModels;
+using VoiceMeeterVolumeLink.Configuration;
+using VoiceMeeterVolumeLink.ViewModels;
 
-namespace VoiceMeeterVolumeConfiguration
+namespace VoiceMeeterVolumeLink
 {
     /// <summary>
     /// Interaction logic for App.xaml

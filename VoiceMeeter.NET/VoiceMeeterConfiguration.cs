@@ -57,14 +57,11 @@ public class VoiceMeeterConfiguration : IDisposable
                 throw new ArgumentOutOfRangeException();
         }
 
-        // At least one call is necessary to get data
-        //this.Client.IsDirty();
-
         for (var s = 0; s < stripCount; s++)
         {
             var newStrip = new Strip(this.ChangeTracker, this._voiceMeeterType, index: s);
         
-            var stripName = this.Client.GetStringParameter(newStrip.GetPropertyParamName(ns => ns.Name));
+            string stripName = this.Client.GetStringParameter(newStrip.GetPropertyParamName(ns => ns.Name));
 
             if (string.IsNullOrWhiteSpace(stripName))
             {
@@ -124,8 +121,7 @@ public class VoiceMeeterConfiguration : IDisposable
 
         return this;
     }
-
-
+    
     /// <inheritdoc />
     public void Dispose()
     {

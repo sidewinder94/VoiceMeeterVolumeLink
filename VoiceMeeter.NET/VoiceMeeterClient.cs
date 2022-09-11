@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Castle.DynamicProxy;
 using JetBrains.Annotations;
@@ -12,7 +13,8 @@ namespace VoiceMeeter.NET;
 
 public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
 {
-    [UsedImplicitly] public LoginResponse Status { get; private set; } = LoginResponse.LoggedOff;
+    [UsedImplicitly] 
+    public LoginResponse Status { get; private set; } = LoginResponse.LoggedOff;
 
     private readonly object _lockObj = new();
 
@@ -28,6 +30,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         return proxyGenerator.CreateInterfaceProxyWithTargetInterface<IVoiceMeeterClient>(client, interceptor);
     }
 
+    /// <inheritdoc/>
     public LoginResponse Login()
     {
         this.Status = NativeMethods.Login();
@@ -35,6 +38,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         return this.Status;
     }
 
+    /// <inheritdoc/>
     [AllowNotLaunched]
     public bool Logout()
     {
@@ -46,6 +50,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         return true;
     }
 
+    /// <inheritdoc/>
     [AllowNotLaunched]
     public void RunVoiceMeeter(VoiceMeeterType voiceMeeterType)
     {
@@ -57,16 +62,16 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
                 throw new VoiceMeeterException("VoiceMeeter is not installed");
             case -2:
                 throw new ArgumentOutOfRangeException(nameof(voiceMeeterType));
-            default:
-                break;
         }
     }
     
+    /// <inheritdoc/>
     public  VoiceMeeterConfiguration GetConfiguration(TimeSpan? refreshDelay = null)
     {
         return new VoiceMeeterConfiguration(this, refreshDelay, this.GetVoiceMeeterType()).Init();
     }
 
+    /// <inheritdoc/>
     public VoiceMeeterType GetVoiceMeeterType()
     {
         NativeMethods.GetVoiceMeeterType(out long result);
@@ -74,6 +79,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         return (VoiceMeeterType)result;
     }
 
+    /// <inheritdoc/>
     public Version GetVoiceMeeterVersion()
     {
         NativeMethods.GetVoiceMeeterVersion(out long version);
@@ -85,6 +91,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
             (int)version & 0x000000FF);
     }
 
+    /// <inheritdoc/>
     public bool IsDirty()
     {
         lock (this._lockObj)
@@ -95,18 +102,20 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public float GetFloatParameter(string paramName)
     {
         lock (this._lockObj)
         {
             long status = NativeMethods.GetParameter(paramName, out float result);
 
-            this.AssertGetParamResult(status, paramName);
+            AssertGetParamResult(status, paramName);
 
             return result;
         }
     }
 
+    /// <inheritdoc/>
     public string GetStringParameter(string paramName)
     {
         lock (this._lockObj)
@@ -117,7 +126,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
             {
                 long status = NativeMethods.GetParameter(paramName, buffer);
 
-                this.AssertGetParamResult(status, paramName);
+                AssertGetParamResult(status, paramName);
 
                 return buffer.GetStringFromNullTerminatedCharArray();
             }
@@ -128,11 +137,13 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         }
     }
 
+    /// <inheritdoc/>
     public long GetOutputDeviceCount()
     {
         return NativeMethods.GetOutputDeviceNumber();
     }
 
+    /// <inheritdoc/>
     public VoiceMeeterDevice GetOutputDevice(long index)
     {
         char[] deviceNameBuffer = ArrayPool<char>.Shared.Rent(512 + 1);
@@ -142,6 +153,11 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         {
             long status = NativeMethods.GetOutputDeviceDescription(index, out long type, deviceNameBuffer, deviceHardwareIdBuffer);
 
+            if (status != 0)
+            {
+                throw new VoiceMeeterException("Unknown Error");
+            }
+            
             return new VoiceMeeterDevice()
             {
                 DeviceType = (DeviceType)type,
@@ -156,20 +172,32 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         }
     }
 
+    [SuppressMessage("Performance", 
+        "CA1822:Mark members as static", 
+        Justification = "We need the logged in check that is done through proxy, check that access an instance field.")]
+    // ReSharper disable once MemberCanBeMadeStatic.Global
     internal void SetParameter(string paramName, string value)
     {
         long status = NativeMethods.SetParameter(paramName, value);
 
-        this.AssertSetParamResult(status, paramName);
+        AssertSetParamResult(status, paramName);
     }
 
+    [SuppressMessage("Performance", 
+        "CA1822:Mark members as static", 
+        Justification = "We need the logged in check that is done through proxy, check that access an instance field.")]
+    // ReSharper disable once MemberCanBeMadeStatic.Global
     internal void SetParameter(string paramName, float value)
     {
         long status = NativeMethods.SetParameter(paramName, value);
 
-        this.AssertSetParamResult(status, paramName);
+        AssertSetParamResult(status, paramName);
     }
 
+    [SuppressMessage("Performance", 
+        "CA1822:Mark members as static", 
+        Justification = "We need the logged in check that is done through proxy, check that access an instance field.")]
+    // ReSharper disable once MemberCanBeMadeStatic.Global
     internal void SetParameters(string script)
     {
         long status = NativeMethods.SetParameters(script);
@@ -183,7 +211,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         }
     }
 
-    private void AssertSetParamResult(long result, string paramName)
+    private static void AssertSetParamResult(long result, string paramName)
     {
         switch (result)
         {
@@ -195,7 +223,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
         }
     }
 
-    private void AssertGetParamResult(long result, string paramName)
+    private static void AssertGetParamResult(long result, string paramName)
     {
         switch (result)
         {
@@ -230,6 +258,7 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
 
         public void Intercept(IInvocation invocation)
         {
+            // ReSharper disable once ArrangeThisQualifier // Cannot add this, there is no Login property in this subclass R# Bug ?
             if (invocation.Method.Name != nameof(Login))
             {
                 var allowNotLaunched =
@@ -250,13 +279,13 @@ public class VoiceMeeterClient : IVoiceMeeterClient, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        ReleaseUnmanagedResources();
+        this.ReleaseUnmanagedResources();
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
     ~VoiceMeeterClient()
     {
-        ReleaseUnmanagedResources();
+        this.ReleaseUnmanagedResources();
     }
 }

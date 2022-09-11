@@ -1,11 +1,11 @@
 ﻿using System.Windows.Controls;
 
-namespace VoiceMeeterVolumeConfiguration;
+namespace VoiceMeeterVolumeLink;
 
 public partial class BusDeviceMapView : UserControl
 {
     public BusDeviceMapView()
     {
-        InitializeComponent();
+        this.InitializeComponent();
     }
 }

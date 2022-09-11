@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Markup;
 
-namespace VoiceMeeterVolumeConfiguration.Markup;
+namespace VoiceMeeterVolumeLink.Markup;
 
 public class ViewModelProvider : MarkupExtension
 {
@@ -15,6 +15,6 @@ public class ViewModelProvider : MarkupExtension
 
     public override object? ProvideValue(IServiceProvider serviceProvider)
     {
-        return ((App)Application.Current).ServiceProvider.GetService(ViewModelType);
+        return ((App)Application.Current).ServiceProvider.GetService(this.ViewModelType);
     }
 }
