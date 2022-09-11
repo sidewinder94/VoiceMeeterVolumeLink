@@ -13,9 +13,28 @@ public class VoiceMeeterConfiguration : IDisposable
 
     internal CancellationToken RefreshCancellationToken => this._cts.Token;
     
-    public VoiceMeeterClient Client { get; }
+    /// <summary>
+    /// Returns the <see cref="IVoiceMeeterClient"/> that is used by this <see cref="VoiceMeeterConfiguration"/> object
+    /// </summary>
+    public IVoiceMeeterClient Client { get; }
+    
+    /// <summary>
+    /// Returns the <see cref="ChangeTracker"/> that is used to poll / push values from / to VoiceMeeter
+    /// </summary>
     public ChangeTracker ChangeTracker { get; }
+    
+    /// <summary>
+    /// Returns a <see cref="Dictionary{TKey,TValue}"/> that holds all the available <see cref="Strip"/>
+    /// </summary>
+    /// <remarks>The <see cref="Dictionary{TKey,TValue}.Keys"/> are either the name defined in VoiceMeeter or <c>Strip - index</c></remarks>
+    /// <remarks><br/>This holds only the <see cref="Strip"/>s that exist in the current VoiceMeeter instance</remarks>
     public Dictionary<string, Strip> Strips { get; } = new();
+    
+    /// <summary>
+    /// Returns a <see cref="Dictionary{TKey,TValue}"/> that holds all the available <see cref="Bus"/>
+    /// </summary>
+    /// <remarks>The <see cref="Dictionary{TKey,TValue}.Keys"/> are the Bus index from VoiceMeeter (e.g. A1)</remarks>
+    /// <remarks><br/>This holds only the <see cref="Bus"/>es that exist in the current VoiceMeeter instance</remarks>
     public Dictionary<string, Bus> Buses { get; } = new();
     
     internal VoiceMeeterConfiguration(VoiceMeeterClient client, TimeSpan? refreshFrequency,
@@ -122,7 +141,10 @@ public class VoiceMeeterConfiguration : IDisposable
         return this;
     }
     
-    /// <inheritdoc />
+    /// <summary>
+    /// Stop the polling (if any), and release unmanaged resources
+    /// </summary>
+    /// <remarks>Does <b>NOT</b> dispose or <see cref="IVoiceMeeterClient.Logout"/> the <see cref="IVoiceMeeterClient"/></remarks>
     public void Dispose()
     {
         this._cts.Cancel();
