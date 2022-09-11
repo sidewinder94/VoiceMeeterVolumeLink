@@ -50,6 +50,7 @@ jobs:
         clean: true
         fetch-depth: 0
         lfs: recursive
+        submodules: recursive
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
