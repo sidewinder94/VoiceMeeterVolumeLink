@@ -97,6 +97,9 @@ public class StripDeviceViewModel : BaseDeviceViewModel
     /// <inheritdoc/>
     protected override void AudioEndpointVolumeChanged((AudioVolumeNotificationData volumeData, float volumeScalar) evt)
     {
+        if (!this.CanUpdateVolume(isVoiceMeeterVolume: false)) return;
+        this.TakeVolumeLead(isVoiceMeeterVolume: false);
+        
         (var volumeData, float volumeScalar) = evt;
         
         if (!this.LinkVolume) return;

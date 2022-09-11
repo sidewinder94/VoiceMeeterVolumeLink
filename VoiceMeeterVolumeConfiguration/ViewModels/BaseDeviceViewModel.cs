@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive;
 using System.Reflection;
+using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
@@ -14,16 +15,20 @@ using VoiceMeeterVolumeConfiguration.Services;
 
 namespace VoiceMeeterVolumeConfiguration.ViewModels;
 
-public abstract class BaseDeviceViewModel : ObservableObject
+public abstract class BaseDeviceViewModel : ObservableObject, IDisposable
 {
     private readonly IDisposable _updateSubscription;
     private bool _linkVolume;
     private int _index;
     private string? _voiceMeeterName;
+    private Timer _syncResetTimer;
+    
     protected readonly IConfigurationManager ConfigurationManager;
     protected readonly AsyncLazy<RootConfiguration> Configuration;
     protected AudioService? AudioService;
     protected IDisposable? VolumeChangeSubscription;
+    protected readonly ManualResetEvent AudioLinkSync = new(true);
+    private bool? _isVoiceMeeterMasterVolume = null;
 
     public int Index
     {
@@ -52,12 +57,13 @@ public abstract class BaseDeviceViewModel : ObservableObject
 
     ~BaseDeviceViewModel()
     {
-        this._updateSubscription?.Dispose();
-        this.VolumeChangeSubscription?.Dispose();
+        Dispose(false);
     }
 
     protected BaseDeviceViewModel(IVoiceMeeterResource voiceMeeterResource, IConfigurationManager configurationManager)
     {
+        this._syncResetTimer = new Timer(ResetSync, this, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
         this.ConfigurationManager = configurationManager;
         this.Configuration = new AsyncLazy<RootConfiguration>(this.ConfigurationManager.GetConfigurationAsync);
 
@@ -88,9 +94,24 @@ public abstract class BaseDeviceViewModel : ObservableObject
         return result;
     }
 
+    protected void TakeVolumeLead(bool isVoiceMeeterVolume)
+    {
+        this._syncResetTimer.Change(TimeSpan.FromMilliseconds(200), Timeout.InfiniteTimeSpan);
+        this._isVoiceMeeterMasterVolume = isVoiceMeeterVolume;
+        this.AudioLinkSync.Reset();
+    }
+    
+    protected bool CanUpdateVolume(bool isVoiceMeeterVolume)
+    {
+        return this.AudioLinkSync.WaitOne(1) || this._isVoiceMeeterMasterVolume == isVoiceMeeterVolume;
+    }
+    
     protected void OnVoiceMeeterGainChange(float? gain)
     {
         if (!gain.HasValue || !this._linkVolume) return;
+        
+        if (!this.CanUpdateVolume(isVoiceMeeterVolume: true)) return;
+        this.TakeVolumeLead(isVoiceMeeterVolume: true);
 
         this.AudioService?.SetVolume(
             ProportionalGain(GetVoiceMeeterVolumeRange(), GetWindowsVolumeRange(), gain.Value));
@@ -134,6 +155,13 @@ public abstract class BaseDeviceViewModel : ObservableObject
         await this.ConfigurationManager.SaveConfigurationAsync();
     }
 
+    private static void ResetSync(object? state)
+    {
+        if (state is not BaseDeviceViewModel viewModel) return;
+        
+        viewModel.AudioLinkSync.Set();
+    }
+    
     protected async void PersistMute(bool value)
     {
         if (this.AudioService?.CurrentDeviceId == null ||
@@ -141,5 +169,21 @@ public abstract class BaseDeviceViewModel : ObservableObject
         (await this.Configuration).ConfiguredDevices[this.AudioService.CurrentDeviceId].Mute = value;
 
         await this.ConfigurationManager.SaveConfigurationAsync();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing) return;
+        this._updateSubscription.Dispose();
+        this.AudioService?.Dispose();
+        this.VolumeChangeSubscription?.Dispose();
+        this.AudioLinkSync.Dispose();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
     }
 }
