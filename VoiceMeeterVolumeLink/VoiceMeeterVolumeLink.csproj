@@ -8,8 +8,14 @@
         <LangVersion>latest</LangVersion>
         <AssemblyName>VoiceMeeterVolumeLink</AssemblyName>
         <RootNamespace>VoiceMeeterVolumeLink</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
-
+    <PropertyGroup Condition="$(Configuration) == 'Release'">
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <PublishReadyToRunWarnings>true</PublishReadyToRunWarnings>
+    </PropertyGroup>
+    
+    
     <ItemGroup>
       <ProjectReference Include="..\VoiceMeeter.NET\VoiceMeeter.Net\VoiceMeeter.NET.csproj" />
     </ItemGroup>
