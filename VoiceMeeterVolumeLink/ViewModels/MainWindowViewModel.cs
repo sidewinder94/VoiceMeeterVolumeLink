@@ -27,7 +27,7 @@ public class MainWindowViewModel : ObservableObject
     private int _height = 250;
     private int _width = 800;
 
-    private VoiceMeeterConfiguration Configuration { get; set; }
+    private VoiceMeeterConfiguration? Configuration { get; set; }
 
     public WindowState WindowState
     {
@@ -84,7 +84,6 @@ public class MainWindowViewModel : ObservableObject
         this.InitAsync();
     }
 
-    [MemberNotNull(nameof(Configuration))]
     private async void InitAsync()
     {
         var settings = await this._configurationManager.GetConfigurationAsync();
@@ -136,7 +135,7 @@ public class MainWindowViewModel : ObservableObject
 
     private void Closing(MouseEventArgs? obj)
     {
-        this.Configuration.Dispose();
+        this.Configuration?.Dispose();
     }
 
     private void RefreshDeviceList()
