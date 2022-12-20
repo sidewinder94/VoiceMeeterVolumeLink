@@ -48,7 +48,7 @@ jobs:
         Runtime: ${{ matrix.runtime }}
 
     - name: Zip Artifacts
-      run: Compress-Archive -Path "VoiceMeeterVolumeLink\bin\$($env:Configuration)\net6.0-windows\$($env:Runtime)\publish\*" -DestinationPath "$($env:Configuration).$($env:Runtime).zip" -CompressionLevel NoCompression
+      run: Compress-Archive -Path "VoiceMeeterVolumeLink\bin\$($env:Configuration)\net7.0-windows\$($env:Runtime)\publish\*" -DestinationPath "$($env:Configuration).$($env:Runtime).zip" -CompressionLevel NoCompression
       shell: pwsh
       env:
         Configuration: ${{ matrix.configuration }}
