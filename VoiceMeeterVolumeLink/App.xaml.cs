@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.HighPerformance;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using VoiceMeeter.NET;
 using VoiceMeeter.NET.Extensions;
 using VoiceMeeterVolumeLink.Configuration;
@@ -82,7 +83,10 @@ namespace VoiceMeeterVolumeLink
 
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddLogging();
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddEventLog();
+            });
             services.AddSingleton<IConfigurationManager, ConfigurationManager>();
             services.AddVoiceMeeterClient();
             services.AddSingleton<MainWindowViewModel>();

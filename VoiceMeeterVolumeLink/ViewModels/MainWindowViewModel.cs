@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -8,6 +10,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using VoiceMeeter.NET;
+using VoiceMeeter.NET.Enums;
 using VoiceMeeterVolumeLink.Configuration;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -78,31 +81,57 @@ public class MainWindowViewModel : ObservableObject
         this.ClosingCommand = new RelayCommand<MouseEventArgs>(this.Closing);
         this.ExitCommand = new RelayCommand<EventArgs>(this.Exit);
 
+        this.InitAsync();
+    }
+
+    [MemberNotNull(nameof(Configuration))]
+    private async void InitAsync()
+    {
+        var settings = await this._configurationManager.GetConfigurationAsync();
+
         try
         {
-            client.Login();
+            var status = this._client.Login();
+
+            switch (status)
+            {
+                case LoginResponse.Ok when !settings.VoiceMeeterType.HasValue:
+                    settings.VoiceMeeterType = this._client.GetVoiceMeeterType();
+                    await this._configurationManager.SaveConfigurationAsync();
+                    break;
+                case LoginResponse.Ok:
+                    break;
+                case LoginResponse.VoiceMeeterNotRunning when settings.VoiceMeeterType.HasValue:
+                    await this._client.RunAndWaitForVoiceMeeterAsync(settings.VoiceMeeterType.Value);
+                    break;
+                case LoginResponse.VoiceMeeterNotRunning:
+                    MessageBox.Show("¨Please start VoiceMeeter before the first startup of this application", "Error",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    break;
+                default:
+                    MessageBox.Show("Error connecting to VoiceMeeter, please make sure it is installed properly", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    throw new ApplicationException();
+            }
         }
         catch (DllNotFoundException e)
         {
             MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            throw;
         }
+        
+        this.Configuration = await this._client.GetConfigurationAsync(TimeSpan.FromMilliseconds(150));
 
-
-        this.Configuration = client.GetConfiguration(TimeSpan.FromMilliseconds(150));
-
-        Task.Delay(150).Wait();
+        await Task.Delay(150);
 
         this.Configuration.Buses
             .Where(kv => !kv.Value.IsVirtual)
-            .Select(kv => new BusDeviceViewModel(kv.Key, kv.Value, configurationManager))
+            .Select(kv => new BusDeviceViewModel(kv.Key, kv.Value, this._configurationManager))
             .ForEach(this.Buses.Add);
 
         this.Configuration.Strips
             .Where(kv => !string.IsNullOrWhiteSpace(kv.Value.VirtualDeviceName))
-            .Select(kv => new StripDeviceViewModel(kv.Value, configurationManager))
+            .Select(kv => new StripDeviceViewModel(kv.Value, this._configurationManager))
             .ForEach(this.Strips.Add);
-
-        
     }
 
     private void Closing(MouseEventArgs? obj)
@@ -123,7 +152,7 @@ public class MainWindowViewModel : ObservableObject
 
         await this._configurationManager.SaveConfigurationAsync();
     }
-    
+
     private async void Click(MouseEventArgs? obj)
     {
         if (obj is not { Button: MouseButtons.Left }) return;
@@ -137,16 +166,18 @@ public class MainWindowViewModel : ObservableObject
             if (configuration.Height.HasValue)
             {
                 Application.Current.Dispatcher.Invoke(
-                    () => viewModel.SetProperty(ref viewModel._height, configuration.Height.Value, nameof(viewModel.Height)));
+                    () => viewModel.SetProperty(ref viewModel._height, configuration.Height.Value,
+                        nameof(viewModel.Height)));
             }
 
             if (configuration.Width.HasValue)
             {
                 Application.Current.Dispatcher.Invoke(
-                    () => viewModel.SetProperty(ref viewModel._width, configuration.Width.Value, nameof(viewModel.Width)));
+                    () => viewModel.SetProperty(ref viewModel._width, configuration.Width.Value,
+                        nameof(viewModel.Width)));
             }
         }, this);
-        
+
         this.WindowState = this.WindowState == WindowState.Minimized ? WindowState.Normal : WindowState.Minimized;
     }
 
