@@ -4,6 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:bh="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:ui="http://schemas.modernwpf.com/2019"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:ThemeManager.RequestedTheme="Light"
         xmlns:markup="clr-namespace:VoiceMeeterVolumeLink.Markup"
         xmlns:wrappers="clr-namespace:VoiceMeeterVolumeLink.Wrappers"
         xmlns:voiceMeeterVolumeLink="clr-namespace:VoiceMeeterVolumeLink"
@@ -26,6 +29,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <ItemsControl Grid.Row="0" ItemsSource="{Binding Buses}" Grid.IsSharedSizeScope="True">
                     <ItemsControl.ItemTemplate>
@@ -44,5 +48,6 @@
             </Grid>
         </ScrollViewer>
 
+        <ui:ToggleSwitch Margin="5,0" VerticalAlignment="Bottom" HorizontalAlignment="Right" IsOn="{Binding IsStartingWithWindows}" OnContent="Automatic Startup" OffContent="Manual Startup" />
     </Grid>
 </Window>
