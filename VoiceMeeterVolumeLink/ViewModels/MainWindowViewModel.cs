@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Printing;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
@@ -12,6 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using VoiceMeeter.NET;
 using VoiceMeeter.NET.Enums;
 using VoiceMeeterVolumeLink.Configuration;
+using VoiceMeeterVolumeLink.Services;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
@@ -26,6 +26,7 @@ public class MainWindowViewModel : ObservableObject
     private bool _showInTaskbar = true;
     private int _height = 250;
     private int _width = 800;
+    private bool _isStartingWithWindows;
 
     private VoiceMeeterConfiguration? Configuration { get; set; }
 
@@ -67,14 +68,31 @@ public class MainWindowViewModel : ObservableObject
         }
     }
 
+    public bool IsStartingWithWindows
+    {
+        get => this._isStartingWithWindows;
+        set
+        {
+            if (value == this._isStartingWithWindows) return;
+            if (!this.HandleAutoStart(value)) return;
+            this.SetProperty(ref this._isStartingWithWindows, value);
+        }
+    }
+
     public ObservableCollection<BusDeviceViewModel> Buses { get; } = new();
+
     public ObservableCollection<StripDeviceViewModel> Strips { get; } = new();
+
     public ICommand HideAndShowCommand { get; set; }
+
     public ICommand ClosingCommand { get; set; }
+
     public ICommand ExitCommand { get; set; }
 
     public MainWindowViewModel(IVoiceMeeterClient client, IConfigurationManager configurationManager)
     {
+        this._isStartingWithWindows = StartupManager.IsApplicationInCurrentUserStartup();
+        
         this._client = client;
         this._configurationManager = configurationManager;
         this.HideAndShowCommand = new RelayCommand<MouseEventArgs>(this.Click);
@@ -178,6 +196,25 @@ public class MainWindowViewModel : ObservableObject
         }, this);
 
         this.WindowState = this.WindowState == WindowState.Minimized ? WindowState.Normal : WindowState.Minimized;
+    }
+
+    private bool HandleAutoStart(bool startup)
+    {
+        try
+        {
+            if (startup)
+            {
+                StartupManager.AddApplicationToCurrentUserStartup();
+                return true;
+            }
+            
+            StartupManager.RemoveApplicationFromCurrentUserStartup();
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     private void Exit(EventArgs? obj)
