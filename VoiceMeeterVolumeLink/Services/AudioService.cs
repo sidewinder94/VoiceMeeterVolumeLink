@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 using System.Reactive;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using NAudio.CoreAudioApi;
 
@@ -120,7 +116,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
                 if (this._currentDevice != null)
                 {
                     this._currentDevice.AudioEndpointVolume.OnVolumeNotification -=
-                        this.AudioEndpointVolumeOnOnVolumeNotification;
+                        this.AudioEndpointVolumeOnVolumeNotification;
                 }
 
                 this._currentDevice = null;
@@ -137,7 +133,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
                         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(this.CurrentDeviceId))));
 
                     this._currentDevice.AudioEndpointVolume.OnVolumeNotification +=
-                        this.AudioEndpointVolumeOnOnVolumeNotification;
+                        this.AudioEndpointVolumeOnVolumeNotification;
                 }
 
                 if (this.UseDevice == null || !lookup.Contains(this.UseDevice))
@@ -170,7 +166,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
         this._observer?.OnCompleted();
     }
 
-    private void AudioEndpointVolumeOnOnVolumeNotification(AudioVolumeNotificationData data)
+    private void AudioEndpointVolumeOnVolumeNotification(AudioVolumeNotificationData data)
     {
         if (this._currentDevice == null) return;
 

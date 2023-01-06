@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Printing;
-using System.Threading.Tasks;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -74,7 +70,7 @@ public class MainWindowViewModel : ObservableObject
         set
         {
             if (value == this._isStartingWithWindows) return;
-            if (!this.HandleAutoStart(value)) return;
+            if (!HandleAutoStart(value)) return;
             this.SetProperty(ref this._isStartingWithWindows, value);
         }
     }
@@ -198,20 +194,18 @@ public class MainWindowViewModel : ObservableObject
         this.WindowState = this.WindowState == WindowState.Minimized ? WindowState.Normal : WindowState.Minimized;
     }
 
-    private bool HandleAutoStart(bool startup)
+    private static bool HandleAutoStart(bool startup)
     {
         try
         {
             if (startup)
             {
-                StartupManager.AddApplicationToCurrentUserStartup();
-                return true;
+                return StartupManager.AddApplicationToCurrentUserStartup();
             }
             
-            StartupManager.RemoveApplicationFromCurrentUserStartup();
-            return true;
+            return StartupManager.RemoveApplicationFromCurrentUserStartup();
         }
-        catch (Exception e)
+        catch
         {
             return false;
         }

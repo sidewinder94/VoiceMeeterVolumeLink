@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace VoiceMeeterVolumeLink.Configuration;
+﻿namespace VoiceMeeterVolumeLink.Configuration;
 
 public interface IConfigurationManager
 {

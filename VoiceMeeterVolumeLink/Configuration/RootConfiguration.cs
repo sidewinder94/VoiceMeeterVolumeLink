@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using VoiceMeeter.NET.Enums;
+﻿using VoiceMeeter.NET.Enums;
 
 namespace VoiceMeeterVolumeLink.Configuration;
 

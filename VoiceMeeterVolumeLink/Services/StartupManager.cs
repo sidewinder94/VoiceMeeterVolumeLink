@@ -1,26 +1,43 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Security.Principal;
 using Microsoft.Win32;
 
 namespace VoiceMeeterVolumeLink.Services;
 
-public class StartupManager
+public static class StartupManager
 {
-    private static string GetApplicationName() => Assembly.GetEntryAssembly().GetName().Name;
+    private static string GetApplicationName() => Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
     private static string GetApplicationLocation() => $"\"{Process.GetCurrentProcess().MainModule?.FileName}\"";
-    
-    public static void AddApplicationToCurrentUserStartup()
+
+    public static bool AddApplicationToCurrentUserStartup()
     {
-        using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-        key?.SetValue(GetApplicationName(), GetApplicationLocation());
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            key?.SetValue(GetApplicationName(), GetApplicationLocation());
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
-    public static void RemoveApplicationFromCurrentUserStartup()
+    public static bool RemoveApplicationFromCurrentUserStartup()
     {
-        using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-        key?.DeleteValue(GetApplicationName(), false);
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            key?.DeleteValue(GetApplicationName(), false);
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public static bool IsApplicationInCurrentUserStartup()
@@ -36,22 +53,39 @@ public class StartupManager
         }
     }
 
-    public static void AddApplicationToAllUserStartup()
+    public static bool AddApplicationToAllUserStartup()
     {
-        using var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-        key?.SetValue(GetApplicationName(), GetApplicationLocation());
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            key?.SetValue(GetApplicationName(), GetApplicationLocation());
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
-    
+
     public static bool IsApplicationInAllUsersStartup()
     {
         using var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", false);
         return key?.GetValue(GetApplicationName()) is not null;
     }
 
-    public static void RemoveApplicationFromAllUserStartup()
+    public static bool RemoveApplicationFromAllUserStartup()
     {
-        using var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-        key?.DeleteValue(GetApplicationName(), false);
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            key?.DeleteValue(GetApplicationName(), false);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public static bool IsUserAdministrator()
@@ -73,6 +107,7 @@ public class StartupManager
         {
             isAdmin = false;
         }
+
         return isAdmin;
     }
 }

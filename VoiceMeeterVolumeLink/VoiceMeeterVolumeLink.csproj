@@ -9,6 +9,7 @@
         <AssemblyName>VoiceMeeterVolumeLink</AssemblyName>
         <RootNamespace>VoiceMeeterVolumeLink</RootNamespace>
         <IsPackable>false</IsPackable>
+        <ImplicitUsings>true</ImplicitUsings>
     </PropertyGroup>
     <PropertyGroup Condition="$(Configuration) == 'Release'">
         <PublishReadyToRun>true</PublishReadyToRun>

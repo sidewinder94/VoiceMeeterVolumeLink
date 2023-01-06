@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reactive;
 using System.Reflection;
-using System.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
