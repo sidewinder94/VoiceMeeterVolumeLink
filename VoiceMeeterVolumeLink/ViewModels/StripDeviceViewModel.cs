@@ -51,9 +51,14 @@ public class StripDeviceViewModel : BaseDeviceViewModel
     {
         Dictionary<string, ConfiguredDevice> configuredDevices = (await this.Configuration).ConfiguredDevices;
         string? deviceId = this.AudioService?.CurrentDeviceId;
-        
+
         if (deviceId == null ||
-            !configuredDevices.ContainsKey(deviceId)) return;
+            !configuredDevices.ContainsKey(deviceId))
+        {
+            this.IsMute = false;
+            this.LinkVolume = false;
+            return;
+        }
 
         this.IsMute = configuredDevices[deviceId].Mute;
         this.LinkVolume = configuredDevices[deviceId].LinkVolume;

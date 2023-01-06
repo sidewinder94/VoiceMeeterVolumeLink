@@ -1,6 +1,7 @@
 ﻿using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Reactive;
+using System.Windows.Media.Animation;
 using NAudio.CoreAudioApi;
 using VoiceMeeter.NET.Configuration;
 using VoiceMeeterVolumeLink.Configuration;
@@ -78,7 +79,12 @@ public class BusDeviceViewModel : BaseDeviceViewModel
         string? deviceId = this.AudioService?.CurrentDeviceId;
 
         if (deviceId == null ||
-            !configuredDevices.ContainsKey(deviceId)) return;
+            !configuredDevices.ContainsKey(deviceId))
+        {
+            this.IsMute = false;
+            this.LinkVolume = false;
+            return;
+        }
 
         this.IsMute = configuredDevices[deviceId].Mute;
         this.LinkVolume = configuredDevices[deviceId].LinkVolume;

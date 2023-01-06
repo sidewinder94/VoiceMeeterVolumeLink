@@ -103,6 +103,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         this.AvailableDeviceNames.Clear();
+                        this.AvailableDeviceNames.Add("");
                         lookupClosure.Select(group => group.Key).ForEach(this.AvailableDeviceNames.Add);
                     });
 
