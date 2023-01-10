@@ -122,6 +122,8 @@ public class StripDeviceViewModel : BaseDeviceViewModel
 
         if (!isMute.HasValue) return;
 
+        if (!this.LinkVolume) return;
+        
         this.AudioService?.SetMute(isMute.Value);
     }
 }

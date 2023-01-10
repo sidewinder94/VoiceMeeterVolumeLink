@@ -122,7 +122,7 @@ public class BusDeviceViewModel : BaseDeviceViewModel
     {
         if (!this.CanUpdateVolume(isVoiceMeeterVolume: false)) return;
         this.TakeVolumeLead(isVoiceMeeterVolume: false);
-        
+
         (var volumeData, float volumeScalar) = evt;
 
         if (!this.LinkVolume) return;
@@ -130,7 +130,7 @@ public class BusDeviceViewModel : BaseDeviceViewModel
         this._resource.Mute = volumeData.Muted;
 
         float proportionalGain = ProportionalGain(GetWindowsVolumeRange(), GetVoiceMeeterVolumeRange(), volumeScalar);
-        
+
         proportionalGain = Math.Abs(proportionalGain) <= 0.3f ? 0.0f : proportionalGain;
 
         this._resource.Gain = proportionalGain;
@@ -160,6 +160,8 @@ public class BusDeviceViewModel : BaseDeviceViewModel
         this.SetProperty(ref this._isMute, isMute, nameof(this.IsMute));
 
         if (!isMute.HasValue) return;
+
+        if (!this.LinkVolume) return;
 
         this.AudioService?.SetMute(isMute.Value);
     }
