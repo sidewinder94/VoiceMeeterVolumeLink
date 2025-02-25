@@ -23,7 +23,7 @@
         </bh:EventTrigger>
     </bh:Interaction.Triggers>
     <Grid>
-        <wrappers:NotifyIconWrapper ClickCommand="{Binding HideAndShowCommand}" ExitCommand="{Binding ExitCommand}" />
+        <wrappers:NotifyIconWrapper ClickCommand="{Binding HideAndShowCommand}" ExitCommand="{Binding ExitCommand}" Text="VoiceMeeter Volume Configuration" />
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="10">
             <Grid>
                 <Grid.RowDefinitions>

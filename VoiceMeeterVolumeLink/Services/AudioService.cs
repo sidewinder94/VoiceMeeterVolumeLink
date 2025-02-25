@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reactive;
 using System.Windows;
 using NAudio.CoreAudioApi;
+using NAudio.Wave;
 
 namespace VoiceMeeterVolumeLink.Services;
 
@@ -34,7 +35,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
     public string? UseDevice
     {
         get => this._useDevice;
-        set => this._useDevice = value;
+        set => this._useDevice = value?.Replace("VoiceMeeter", "Voicemeeter");
     }
 
     public string? CurrentDeviceId
@@ -82,10 +83,10 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
         if (obj is not CancellationToken ct) return;
 
         var enumerator = new MMDeviceEnumerator();
-
+        
         ILookup<string, MMDevice> lookup = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
             .ToLookup(d => d.FriendlyName);
-
+        
         string? selectedDevice = null;
 
         do
@@ -95,7 +96,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
             {
                 lookup = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
                     .ToLookup(d => d.FriendlyName);
-
+                
                 if (this.AvailableDeviceNames != null)
                 {
                     ILookup<string, MMDevice> lookupClosure = lookup;
@@ -105,6 +106,7 @@ public sealed class AudioService : ObservableBase<(AudioVolumeNotificationData v
                         this.AvailableDeviceNames.Clear();
                         this.AvailableDeviceNames.Add("");
                         lookupClosure.Select(group => group.Key).ForEach(this.AvailableDeviceNames.Add);
+                        AsioOut.GetDriverNames().Where(s => !s.Contains("Voicemeeter")).ForEach(this.AvailableDeviceNames.Add);
                     });
 
                     this._refreshAvailableDevices = false;
